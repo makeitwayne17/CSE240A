@@ -11,17 +11,19 @@
 //
 // TODO:Student Information
 //
-const char *studentName = "NAME";
-const char *studentID   = "PID";
-const char *email       = "EMAIL";
+const char *studentName = "Bryant Liu";
+const char *studentID = "A13458492";
+const char *email = "brl072@ucsd.edu";
+
+//Gshare hint: http://people.cs.pitt.edu/~childers/CS2410/slides/lect-branch-prediction.pdf
 
 //------------------------------------//
 //      Predictor Configuration       //
 //------------------------------------//
 
 // Handy Global for use in output routines
-const char *bpName[4] = { "Static", "Gshare",
-                          "Tournament", "Custom" };
+const char *bpName[4] = {"Static", "Gshare",
+                         "Tournament", "Custom"};
 
 int ghistoryBits; // Number of bits used for Global History
 int lhistoryBits; // Number of bits used for Local History
@@ -37,15 +39,13 @@ int verbose;
 //TODO: Add your own Branch Predictor data structures here
 //
 
-
 //------------------------------------//
 //        Predictor Functions         //
 //------------------------------------//
 
 // Initialize the predictor
 //
-void
-init_predictor()
+void init_predictor()
 {
   //
   //TODO: Initialize Branch Predictor Data Structures
@@ -64,14 +64,15 @@ make_prediction(uint32_t pc)
   //
 
   // Make a prediction based on the bpType
-  switch (bpType) {
-    case STATIC:
-      return TAKEN;
-    case GSHARE:
-    case TOURNAMENT:
-    case CUSTOM:
-    default:
-      break;
+  switch (bpType)
+  {
+  case STATIC:
+    return TAKEN;
+  case GSHARE:
+  case TOURNAMENT:
+  case CUSTOM:
+  default:
+    break;
   }
 
   // If there is not a compatable bpType then return NOTTAKEN
@@ -82,8 +83,7 @@ make_prediction(uint32_t pc)
 // outcome 'outcome' (true indicates that the branch was taken, false
 // indicates that the branch was not taken)
 //
-void
-train_predictor(uint32_t pc, uint8_t outcome)
+void train_predictor(uint32_t pc, uint8_t outcome)
 {
   //
   //TODO: Implement Predictor training
