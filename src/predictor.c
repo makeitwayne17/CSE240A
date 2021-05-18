@@ -129,7 +129,7 @@ gshare(uint32_t pc)
   uint32_t pcMasked = (pc & gMask);      //create a masked version of the PC counter
   uint32_t histMasked = (gHist & gMask); //create a masked version of the history counter
   uint32_t loc = pcMasked ^ histMasked;  //get the location to index into gHistTable
-  // fprintf(stderr, "loc: %ull        ghist: %ull\n", loc, gHistTable[loc]);
+  // fprintf(stderr, "loc: %u        ghist: %u\n", loc, gHistTable[loc]);
 
   //return not taken if less than weakly taken (aka SN and WN)
   if (gHistTable[loc] < WT)
@@ -149,18 +149,17 @@ void train_ghsare(uint32_t pc, uint8_t outcome)
 
   if (outcome)
   {
-    gHistTable[loc]--; //if outcome is not taken, we decrease gHist[i]
+    gHistTable[loc]++; //if outcome is not taken, we decrease gHist[i]
   }
   else
   {
-    gHistTable[loc]++; //if outcome is taken, we increase gHist[i]
+    gHistTable[loc]--; //if outcome is taken, we increase gHist[i]
   }
   //bound check
   if (gHistTable[loc] > ST)
   {
     gHistTable[loc] = ST;
-  }
-  else if (gHistTable[loc] < SN)
+  } else if (gHistTable[loc] < SN)
   {
     gHistTable[loc] = SN;
   }
