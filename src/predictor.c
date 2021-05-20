@@ -147,20 +147,15 @@ void train_ghsare(uint32_t pc, uint8_t outcome)
   uint32_t histMasked = (gHist & gMask); //create a masked version of the history counter
   uint32_t loc = pcMasked ^ histMasked;  //get the location to index into gHistTable
 
-  if (outcome)
+  if (outcome == TAKEN && gHistTable[loc] < ST)
   {
-    gHistTable[loc]++; //if outcome is not taken, we decrease gHist[i]
+    gHistTable[loc]++; //if outcome is taken, we increase gHistTable[i]
   }
-  else
+  if (outcome != TAKEN && gHistTable[loc] > SN)
   {
-    gHistTable[loc]--; //if outcome is taken, we increase gHist[i]
+    gHistTable[loc]--; //if outcome is not taken, we decrease gHistTable[i]
   }
-  //bound check
-  if (gHistTable[loc] > ST)
-  {
-    gHistTable[loc] = ST;
-  } else if (gHistTable[loc] < SN)
-  {
-    gHistTable[loc] = SN;
-  }
+
+  gHist <<= 1;      //push the history down
+  gHist |= outcome; //mix with the outcome
 }
