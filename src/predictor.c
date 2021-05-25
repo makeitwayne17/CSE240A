@@ -16,6 +16,10 @@ const char *studentName = "Bryant Liu";
 const char *studentID = "A13458492";
 const char *email = "brl072@ucsd.edu";
 
+const char *studentName2 = "Bao Hoang";
+const char *studentID2 = "A14722199";
+const char *email2 = "bghoang@ucsd.edu";
+
 //Gshare hint: http://people.cs.pitt.edu/~childers/CS2410/slides/lect-branch-prediction.pdf
 //Gshare hint: https://www.youtube.com/watch?v=avp3bDqCXYM
 
@@ -90,6 +94,7 @@ make_prediction(uint32_t pc)
   case GSHARE:
     return gshare(pc);
   case TOURNAMENT:
+    return tournament(pc);
   case CUSTOM:
   default:
     break;
@@ -113,6 +118,7 @@ void train_predictor(uint32_t pc, uint8_t outcome)
   case GSHARE:
     train_ghsare(pc, outcome);
   case TOURNAMENT:
+    train_tournament(pc, outcome);
   case CUSTOM:
   default:
     break;
@@ -159,3 +165,12 @@ void train_ghsare(uint32_t pc, uint8_t outcome)
   gHist <<= 1;      //push the history down
   gHist |= outcome; //mix with the outcome
 }
+
+
+// Function to handle predictor for tournament
+uint8_t tournament(uint32_t pc){
+  return TAKEN;
+}
+
+// Training of tournament
+void train_tournament(uint32_t pc, uint8_t outcome){}
