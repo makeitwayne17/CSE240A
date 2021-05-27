@@ -62,7 +62,10 @@ void init_predictor();
 uint8_t make_prediction(uint32_t pc);
 uint8_t gshare(uint32_t pc);
 uint8_t tournament(uint32_t pc);
+<<<<<<< HEAD
 uint8_t custom(uint32_t pc);
+=======
+>>>>>>> 6e8290853bc35df7a41687631779b12bd2ad6981
 
 // Train the predictor the last executed branch at PC 'pc' and with
 // outcome 'outcome' (true indicates that the branch was taken, false
@@ -71,6 +74,9 @@ uint8_t custom(uint32_t pc);
 void train_predictor(uint32_t pc, uint8_t outcome);
 void train_ghsare(uint32_t pc, uint8_t outcome);
 void train_tournament(uint32_t pc, uint8_t outcome);
+<<<<<<< HEAD
 void train_custom(uint32_t pc, uint8_t outcome);
+=======
+>>>>>>> 6e8290853bc35df7a41687631779b12bd2ad6981
 
 #endif

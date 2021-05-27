@@ -17,6 +17,10 @@ const char *studentName = "Bryant Liu";
 const char *studentID = "A13458492";
 const char *email = "brl072@ucsd.edu";
 
+const char *studentName2 = "Bao Hoang";
+const char *studentID2 = "A14722199";
+const char *email2 = "bghoang@ucsd.edu";
+
 //Gshare hint: http://people.cs.pitt.edu/~childers/CS2410/slides/lect-branch-prediction.pdf
 //Gshare hint: https://www.youtube.com/watch?v=avp3bDqCXYM
 
