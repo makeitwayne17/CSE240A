@@ -260,9 +260,26 @@ void train_tournament(uint32_t pc, uint8_t outcome)
     localCorrect = 1;
   }
 
-  uint32_t currGlobal = tGlob[tGlobHist];
-  uint32_t currLocal = tPredictLocal[tLocalPreditIdx];
+  //update selector, only when local differs from global
+  if (tGlob[tGlobHist] != tPredictLocal[tLocalPreditIdx])
+  {
+    if (localCorrect == 1) //if the local one is right?
+    {
+      if (tSelect[tGlobHist] > SN)
+      {
+        tSelect[tGlobHist]--;
+      }
+    }
+    else
+    {
+      if (tSelect[tGlobHist] < ST)
+      {
+        tSelect[tGlobHist]++;
+      }
+    }
+  }
 
+  //update global history as well as local prediction for that local history
   if (outcome == TAKEN)
   {
     if (tGlob[tGlobHist] != ST)
@@ -286,29 +303,10 @@ void train_tournament(uint32_t pc, uint8_t outcome)
     }
   }
 
-  //update localHist table for this PC, only if the prediction is correct
+  //update localHist table for this PC
   tHistLocal[histLocalIdx] <<= 1;
   tHistLocal[histLocalIdx] += outcome;
   tHistLocal[histLocalIdx] &= tLocalHistMask;
-
-  //update selector, only when local differs from global
-  if (currGlobal != currLocal)
-  {
-    if (localCorrect == 1)
-    {
-      if (tSelect[tGlobHist] > SN)
-      {
-        tSelect[tGlobHist]--;
-      }
-    }
-    else
-    {
-      if (tSelect[tGlobHist] < ST)
-      {
-        tSelect[tGlobHist]++;
-      }
-    }
-  }
 
   //update tGlobHist with new out come
   tGlobHist <<= 1;
@@ -329,9 +327,26 @@ void train_custom(uint32_t pc, uint8_t outcome)
     localCorrect = 1;
   }
 
-  uint32_t currGlobal = tGlob[tGlobHist];
-  uint32_t currLocal = tPredictLocal[tLocalPreditIdx];
+  //update selector, only when local differs from global
+  if (tGlob[tGlobHist] != tPredictLocal[tLocalPreditIdx])
+  {
+    if (localCorrect == 1) //if the local one is right?
+    {
+      if (tSelect[tGlobHist] > 0)
+      {
+        tSelect[tGlobHist]--;
+      }
+    }
+    else
+    {
+      if (tSelect[tGlobHist] < 7)
+      {
+        tSelect[tGlobHist]++;
+      }
+    }
+  }
 
+  //update global history as well as local prediction for that local history
   if (outcome == TAKEN)
   {
     if (tGlob[tGlobHist] != ST)
@@ -355,29 +370,10 @@ void train_custom(uint32_t pc, uint8_t outcome)
     }
   }
 
-  //update localHist table for this PC, only if the prediction is correct
+  //update localHist table for this PC
   tHistLocal[histLocalIdx] <<= 1;
   tHistLocal[histLocalIdx] += outcome;
   tHistLocal[histLocalIdx] &= tLocalHistMask;
-
-  //update selector, only when local differs from global
-  if (currGlobal != currLocal)
-  {
-    if (localCorrect == 1)
-    {
-      if (tSelect[tGlobHist] > 0)
-      {
-        tSelect[tGlobHist]--;
-      }
-    }
-    else
-    {
-      if (tSelect[tGlobHist] < 7)
-      {
-        tSelect[tGlobHist]++;
-      }
-    }
-  }
 
   //update tGlobHist with new out come
   tGlobHist <<= 1;
