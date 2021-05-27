@@ -8,7 +8,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "predictor.h"
-#define HIST_LEN 0xFFFFF
+#include <string.h>
+#define HIST_LEN 0xFFFFFF
 //
 // TODO:Student Information
 //
@@ -43,6 +44,15 @@ int verbose;
 uint32_t gMask;
 uint32_t gHist;
 uint32_t gHistTable[HIST_LEN];
+
+uint32_t tGlobMask;
+uint32_t tGlobHist;
+uint32_t tPCMask;
+uint32_t tLocalHistMask;
+uint32_t tGlob[HIST_LEN];
+uint32_t tHistLocal[HIST_LEN];
+uint32_t tPredictLocal[HIST_LEN];
+uint32_t tSelect[HIST_LEN];
 // uint32_t gHistTable[UINTN_MAX];
 
 //------------------------------------//
@@ -69,6 +79,34 @@ void init_predictor()
   {
     gHistTable[i] = WN;
   }
+
+  //initialize tournament
+  tGlobHist = 0;
+  tGlobMask = 0;
+  tLocalHistMask = 0;
+  tPCMask = 0;
+  for (int i = 0; i < ghistoryBits; i++)
+  {
+    tGlobMask <<= 1;
+    tGlobMask += 1;
+  }
+  for (int i = 0; i < lhistoryBits; i++)
+  {
+    tLocalHistMask <<= 1;
+    tLocalHistMask += 1;
+  }
+  for (int i = 0; i < pcIndexBits; i++)
+  {
+    tPCMask <<= 1;
+    tPCMask += 1;
+  }
+  for (int i = 0; i < HIST_LEN; i++)
+  {
+    tGlob[i] = WN;         //Setup global predictor for tournament
+    tSelect[i] = 3;        //Setup choice predictor for tournament
+    tHistLocal[i] = 0;     //Setup local history for tournament
+    tPredictLocal[i] = WN; //Setup local predictions for tournament
+  }
 }
 
 // Make a prediction for conditional branch instruction at PC 'pc'
@@ -90,7 +128,9 @@ make_prediction(uint32_t pc)
   case GSHARE:
     return gshare(pc);
   case TOURNAMENT:
+    return tournament(pc);
   case CUSTOM:
+    return custom(pc);
   default:
     break;
   }
@@ -113,7 +153,9 @@ void train_predictor(uint32_t pc, uint8_t outcome)
   case GSHARE:
     train_ghsare(pc, outcome);
   case TOURNAMENT:
+    train_tournament(pc, outcome);
   case CUSTOM:
+    train_custom(pc, outcome);
   default:
     break;
   }
@@ -123,8 +165,7 @@ void train_predictor(uint32_t pc, uint8_t outcome)
 //need a shift register of the most recent taken or not taken
 //combine global history with branch adress
 
-uint8_t
-gshare(uint32_t pc)
+uint8_t gshare(uint32_t pc)
 {
   uint32_t pcMasked = (pc & gMask);      //create a masked version of the PC counter
   uint32_t histMasked = (gHist & gMask); //create a masked version of the history counter
@@ -138,6 +179,48 @@ gshare(uint32_t pc)
   }
   //return taken otherwise
   return TAKEN;
+}
+
+uint8_t tournament(uint32_t pc)
+{
+  uint8_t outcome = NOTTAKEN;
+  tGlobHist &= tGlobMask;                                 //tGlobHist is the gloabl history of previous branches
+  uint32_t histLocalIdx = (pc & tPCMask);                 //Masked version of the pc and PC mask to index the local history table
+  uint32_t tLocalHist = tHistLocal[histLocalIdx];         //indexing the local history table to get the local history of that PC
+  uint32_t tLocalPreditIdx = tLocalHistMask & tLocalHist; //getting the index of the prediction of that local history
+
+  if (tSelect[tGlobHist] > WN)
+  {
+    //use global
+    outcome = (tGlob[tGlobHist] > WN) ? TAKEN : NOTTAKEN;
+  }
+  else
+  {
+    //use local
+    outcome = (tPredictLocal[tLocalPreditIdx] > WN) ? TAKEN : NOTTAKEN;
+  }
+  return outcome;
+}
+
+uint8_t custom(uint32_t pc)
+{
+  uint8_t outcome = NOTTAKEN;
+  tGlobHist &= tGlobMask;                                 //tGlobHist is the gloabl history of previous branches
+  uint32_t histLocalIdx = (pc & tPCMask);                 //Masked version of the pc and PC mask to index the local history table
+  uint32_t tLocalHist = tHistLocal[histLocalIdx];         //indexing the local history table to get the local history of that PC
+  uint32_t tLocalPreditIdx = tLocalHistMask & tLocalHist; //getting the index of the prediction of that local history
+
+  if (tSelect[tGlobHist] > 3)
+  {
+    //use global
+    outcome = (tGlob[tGlobHist] > WN) ? TAKEN : NOTTAKEN;
+  }
+  else
+  {
+    //use local
+    outcome = (tPredictLocal[tLocalPreditIdx] > WN) ? TAKEN : NOTTAKEN;
+  }
+  return outcome;
 }
 
 //training of gShare
@@ -158,4 +241,142 @@ void train_ghsare(uint32_t pc, uint8_t outcome)
 
   gHist <<= 1;      //push the history down
   gHist |= outcome; //mix with the outcome
+}
+
+//training of tournament
+void train_tournament(uint32_t pc, uint8_t outcome)
+{
+  tGlobHist &= tGlobMask;                                 //Masked version of the history counter, anded with the mask
+  uint32_t histLocalIdx = (pc & tPCMask);                 //Masked version of the pc and PC mask to index the local history table
+  uint32_t tLocalHist = tHistLocal[histLocalIdx];         //indexing the local history table to get the local history of that PC
+  uint32_t tLocalPreditIdx = tLocalHistMask & tLocalHist; //getting the index of the prediction of that local history
+
+  int localCorrect = 0;
+  if ((outcome == TAKEN && tPredictLocal[tLocalPreditIdx] > WN) || (outcome == NOTTAKEN && tPredictLocal[tLocalPreditIdx] <= WN))
+  {
+    localCorrect = 1;
+  }
+
+  uint32_t currGlobal = tGlob[tGlobHist];
+  uint32_t currLocal = tPredictLocal[tLocalPreditIdx];
+
+  if (outcome == TAKEN)
+  {
+    if (tGlob[tGlobHist] != ST)
+    {
+      tGlob[tGlobHist]++;
+    }
+    if (tPredictLocal[tLocalPreditIdx] != ST)
+    {
+      tPredictLocal[tLocalPreditIdx]++;
+    }
+  }
+  else
+  {
+    if (tGlob[tGlobHist] != SN)
+    {
+      tGlob[tGlobHist]--;
+    }
+    if (tPredictLocal[tLocalPreditIdx] != SN)
+    {
+      tPredictLocal[tLocalPreditIdx]--;
+    }
+  }
+
+  //update localHist table for this PC, only if the prediction is correct
+  tHistLocal[histLocalIdx] <<= 1;
+  tHistLocal[histLocalIdx] += outcome;
+  tHistLocal[histLocalIdx] &= tLocalHistMask;
+
+  //update selector, only when local differs from global
+  if (currGlobal != currLocal)
+  {
+    if (localCorrect == 1)
+    {
+      if (tSelect[tGlobHist] > SN)
+      {
+        tSelect[tGlobHist]--;
+      }
+    }
+    else
+    {
+      if (tSelect[tGlobHist] < ST)
+      {
+        tSelect[tGlobHist]++;
+      }
+    }
+  }
+
+  //update tGlobHist with new out come
+  tGlobHist <<= 1;
+  tGlobHist |= outcome;
+}
+
+//training of custom
+void train_custom(uint32_t pc, uint8_t outcome)
+{
+  tGlobHist &= tGlobMask;                                 //Masked version of the history counter, anded with the mask
+  uint32_t histLocalIdx = (pc & tPCMask);                 //Masked version of the pc and PC mask to index the local history table
+  uint32_t tLocalHist = tHistLocal[histLocalIdx];         //indexing the local history table to get the local history of that PC
+  uint32_t tLocalPreditIdx = tLocalHistMask & tLocalHist; //getting the index of the prediction of that local history
+
+  int localCorrect = 0;
+  if ((outcome == TAKEN && tPredictLocal[tLocalPreditIdx] > WN) || (outcome == NOTTAKEN && tPredictLocal[tLocalPreditIdx] <= WN))
+  {
+    localCorrect = 1;
+  }
+
+  uint32_t currGlobal = tGlob[tGlobHist];
+  uint32_t currLocal = tPredictLocal[tLocalPreditIdx];
+
+  if (outcome == TAKEN)
+  {
+    if (tGlob[tGlobHist] != ST)
+    {
+      tGlob[tGlobHist]++;
+    }
+    if (tPredictLocal[tLocalPreditIdx] != ST)
+    {
+      tPredictLocal[tLocalPreditIdx]++;
+    }
+  }
+  else
+  {
+    if (tGlob[tGlobHist] != SN)
+    {
+      tGlob[tGlobHist]--;
+    }
+    if (tPredictLocal[tLocalPreditIdx] != SN)
+    {
+      tPredictLocal[tLocalPreditIdx]--;
+    }
+  }
+
+  //update localHist table for this PC, only if the prediction is correct
+  tHistLocal[histLocalIdx] <<= 1;
+  tHistLocal[histLocalIdx] += outcome;
+  tHistLocal[histLocalIdx] &= tLocalHistMask;
+
+  //update selector, only when local differs from global
+  if (currGlobal != currLocal)
+  {
+    if (localCorrect == 1)
+    {
+      if (tSelect[tGlobHist] > 0)
+      {
+        tSelect[tGlobHist]--;
+      }
+    }
+    else
+    {
+      if (tSelect[tGlobHist] < 7)
+      {
+        tSelect[tGlobHist]++;
+      }
+    }
+  }
+
+  //update tGlobHist with new out come
+  tGlobHist <<= 1;
+  tGlobHist |= outcome;
 }
