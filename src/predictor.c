@@ -117,8 +117,7 @@ void init_predictor()
 // Returning TAKEN indicates a prediction of taken; returning NOTTAKEN
 // indicates a prediction of not taken
 //
-uint8_t
-make_prediction(uint32_t pc)
+uint8_t make_prediction(uint32_t pc)
 {
   //
   //TODO: Implement prediction scheme
