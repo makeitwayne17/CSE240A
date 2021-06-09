@@ -69,7 +69,7 @@ uint8_t custom(uint32_t pc);
 // indicates that the branch was not taken)
 //
 void train_predictor(uint32_t pc, uint8_t outcome);
-void train_ghsare(uint32_t pc, uint8_t outcome);
+void train_gshare(uint32_t pc, uint8_t outcome);
 void train_tournament(uint32_t pc, uint8_t outcome);
 void train_custom(uint32_t pc, uint8_t outcome);
 

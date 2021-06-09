@@ -151,7 +151,7 @@ void train_predictor(uint32_t pc, uint8_t outcome)
   case STATIC:
     break;
   case GSHARE:
-    train_ghsare(pc, outcome);
+    train_gshare(pc, outcome);
   case TOURNAMENT:
     train_tournament(pc, outcome);
   case CUSTOM:
@@ -161,7 +161,9 @@ void train_predictor(uint32_t pc, uint8_t outcome)
   }
 }
 
-// The Gshare predictor is characterized by XORing the global history register with the lower bits (same length as the global history) of the branch's address. This XORed value is then used to index into a 1D BHT of 2-bit predictors.
+// The Gshare predictor is characterized by XORing the global history register with 
+// the lower bits (same length as the global history) of the branch's address. 
+// This XORed value is then used to index into a 1D BHT of 2-bit predictors.
 //need a shift register of the most recent taken or not taken
 //combine global history with branch adress
 
@@ -224,7 +226,7 @@ uint8_t custom(uint32_t pc)
 }
 
 //training of gShare
-void train_ghsare(uint32_t pc, uint8_t outcome)
+void train_gshare(uint32_t pc, uint8_t outcome)
 {
   uint32_t pcMasked = (pc & gMask);      //create a masked version of the PC counter
   uint32_t histMasked = (gHist & gMask); //create a masked version of the history counter
