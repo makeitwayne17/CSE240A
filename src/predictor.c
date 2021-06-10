@@ -161,8 +161,8 @@ void train_predictor(uint32_t pc, uint8_t outcome)
   }
 }
 
-// The Gshare predictor is characterized by XORing the global history register with 
-// the lower bits (same length as the global history) of the branch's address. 
+// The Gshare predictor is characterized by XORing the global history register with
+// the lower bits (same length as the global history) of the branch's address.
 // This XORed value is then used to index into a 1D BHT of 2-bit predictors.
 //need a shift register of the most recent taken or not taken
 //combine global history with branch adress
@@ -212,7 +212,7 @@ uint8_t custom(uint32_t pc)
   uint32_t tLocalHist = tHistLocal[histLocalIdx];         //indexing the local history table to get the local history of that PC
   uint32_t tLocalPreditIdx = tLocalHistMask & tLocalHist; //getting the index of the prediction of that local history
 
-  if (tSelect[tGlobHist] > 3)   //using 3 bit predictor -> better than 4 bit
+  if (tSelect[tGlobHist] > 4) //using 3 bit predictor -> better than 4 bit
   {
     //use global
     outcome = (tGlob[tGlobHist] > WN) ? TAKEN : NOTTAKEN;
