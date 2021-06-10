@@ -212,7 +212,7 @@ uint8_t custom(uint32_t pc)
   uint32_t tLocalHist = tHistLocal[histLocalIdx];         //indexing the local history table to get the local history of that PC
   uint32_t tLocalPreditIdx = tLocalHistMask & tLocalHist; //getting the index of the prediction of that local history
 
-  if (tSelect[tGlobHist] > 4) //using 3 bit predictor -> better than 4 bit
+  if (tSelect[tGlobHist] > 3) //using 3 bit predictor -> better than 4 bit
   {
     //use global
     outcome = (tGlob[tGlobHist] > WN) ? TAKEN : NOTTAKEN;
