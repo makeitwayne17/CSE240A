@@ -21,11 +21,14 @@
 #     # echo $filename;
 #     bunzip2 -kc $filename| ./predictor --gshare:13;
 # done
-for i in {9..14}
+for i in {9..10}
 do
-    echo -e "\n\nGSHARE:$i: \n\n"
-    for filename in ../traces/*.bz2; do
-        # echo $filename;
-        bunzip2 -kc $filename| ./predictor --gshare:i;
+    for j in {10..11}
+    do
+        echo -e "\n\nCustom:$i:$j:$j\n\n"
+        for filename in ../traces/*.bz2; do
+            # echo $filename;
+            bunzip2 -kc $filename| ./predictor --tournament:$i:$j:$j;
+        done
     done
 done
